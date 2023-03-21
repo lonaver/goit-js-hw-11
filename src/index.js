@@ -85,12 +85,14 @@ const renderOneCardPicture = (
 const setClassesEndPage = () => {
   btnLoadMoreEl.classList.add('ishidden');
   messageEndEl.classList.remove('ishidden');
+
   window.removeEventListener('scroll', handleScrollPage);
 };
 
 const setClassesStartPage = () => {
   btnLoadMoreEl.classList.remove('ishidden');
   messageEndEl.classList.add('ishidden');
+
   window.addEventListener('scroll', handleScrollPage);
 };
 
@@ -98,6 +100,12 @@ const errorRespons = () =>
   Notify.failure(
     'Sorry, there are no images matching your search query. Please try again.'
   );
+
+const showBigPicture = () => {
+  let gallery = new SimpleLightbox('.gallery a');
+  gallery.captionDelay = 250;
+  gallery.on('show.simplelightbox');
+};
 
 const fetchAllCards = async numberCards => {
   const nameSearch = inputSearchEl.value;
@@ -117,6 +125,7 @@ const fetchAllCards = async numberCards => {
 
     // console.log(currentHits);
     if (arrayPitures.length === 0) errorRespons();
+
     if (isAllPitures || arrayPitures.length === 0) {
       setClassesEndPage();
       return;
@@ -150,13 +159,11 @@ const fetchAllCards = async numberCards => {
       .join('');
     wrapGalleryEl.insertAdjacentHTML('beforeEnd', renderCardsPictures);
 
-    let gallery = new SimpleLightbox('.gallery a');
-    gallery.captionDelay = 250;
-    gallery.on('show.simplelightbox');
+    showBigPicture();
   } catch (error) {
     console.log(error.message);
-    errorRespons();
-    setClassesEndPage();
+    // errorRespons();
+    // setClassesEndPage();
   }
 };
 
