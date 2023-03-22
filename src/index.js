@@ -2,9 +2,7 @@ import SimpleLightbox from 'simplelightbox';
 // Додатковий імпорт стилів
 import 'simplelightbox/dist/simple-lightbox.min.css';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
-import axios from 'axios';
-
-const KEY_API = '34551124-3d6c313521296c54d83fa1029';
+import { fetchPhoto } from './components/fetchPictures';
 
 const bodyEl = document.querySelector('body');
 const formEl = document.querySelector('.search-form');
@@ -20,7 +18,6 @@ let isAllPitures = false;
 btnLoadMoreEl.classList.add('ishidden');
 messageEndEl.classList.add('ishidden');
 bodyEl.classList.add('stop-scrolling');
-// axios.defaults.baseURL('');
 
 const showModalImg = () => {
   gallery = new SimpleLightbox('gallery__link');
@@ -28,26 +25,6 @@ const showModalImg = () => {
   gallery.captionDelay = 250;
   gallery.on('show.simplelightbox');
 };
-
-async function fetchPhoto(name, number_page) {
-  try {
-    const response = await axios.get(
-      `https://pixabay.com/api/?key=${KEY_API}&q=${name}`,
-      {
-        params: {
-          image_type: 'photo',
-          orientation: 'horizontal',
-          safesearch: 'true',
-          per_page: '40',
-          page: `${number_page}`,
-        },
-      }
-    );
-    return response;
-  } catch (error) {
-    console.log(error);
-  }
-}
 
 const renderOneCardPicture = (
   webformatURL,
@@ -90,7 +67,7 @@ const setClassesEndPage = () => {
 };
 
 const setClassesStartPage = () => {
-  btnLoadMoreEl.classList.remove('ishidden');
+  // btnLoadMoreEl.classList.remove('ishidden');
   messageEndEl.classList.add('ishidden');
 
   window.addEventListener('scroll', handleScrollPage);
@@ -123,7 +100,6 @@ const fetchAllCards = async numberCards => {
     currentHits += arrayPitures.length;
     isAllPitures = currentHits < totalHits ? false : true;
 
-    // console.log(currentHits);
     if (arrayPitures.length === 0) errorRespons();
 
     if (isAllPitures || arrayPitures.length === 0) {
