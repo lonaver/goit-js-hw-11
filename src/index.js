@@ -86,8 +86,9 @@ const showBigPicture = () => {
 
 const responseFetchPhoto = async numberCards => {
   const nameSearch = inputSearchEl.value.trim();
-  if (nameSearch === '') throw new Error();
+
   try {
+    if (nameSearch === '') throw new Error();
     const data = await fetchPhoto(nameSearch, numberCards);
     return data;
   } catch (error) {
