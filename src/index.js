@@ -84,16 +84,20 @@ const showBigPicture = () => {
   gallery.on('show.simplelightbox');
 };
 
-const fetchAllCards = async numberCards => {
+const responseFetchPhoto = async numberCards => {
   const nameSearch = inputSearchEl.value;
-  const itemPicture = await fetchPhoto(nameSearch, numberCards)
-    .then(response => response)
-    .catch(error => {
-      console.log(error);
-      // errorRespons();
-    });
-
   try {
+    const data = await fetchPhoto(nameSearch, numberCards);
+    return data;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const fetchAllCards = async numberCards => {
+  try {
+    const itemPicture = await responseFetchPhoto(numberCards);
+
     const arrayPitures = [...itemPicture.data.hits];
 
     let totalHits = itemPicture.data.totalHits;
