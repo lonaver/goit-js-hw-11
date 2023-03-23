@@ -60,7 +60,7 @@ const renderOneCardPicture = (
 };
 
 const setClassesEndPage = () => {
-  btnLoadMoreEl.classList.add('ishidden');
+  // btnLoadMoreEl.classList.add('ishidden');
   messageEndEl.classList.remove('ishidden');
 
   window.removeEventListener('scroll', handleScrollPage);
@@ -85,12 +85,14 @@ const showBigPicture = () => {
 };
 
 const responseFetchPhoto = async numberCards => {
-  const nameSearch = inputSearchEl.value;
+  const nameSearch = inputSearchEl.value.trim();
+  if (nameSearch === '') throw new Error();
   try {
     const data = await fetchPhoto(nameSearch, numberCards);
     return data;
   } catch (error) {
     console.log(error);
+    // btnLoadMoreEl.classList.add('ishidden');
   }
 };
 
@@ -142,8 +144,7 @@ const fetchAllCards = async numberCards => {
     showBigPicture();
   } catch (error) {
     console.log(error.message);
-    // errorRespons();
-    // setClassesEndPage();
+    // btnLoadMoreEl.classList.add('ishidden');
   }
 };
 
@@ -157,12 +158,12 @@ const handleSearchPictures = e => {
 };
 
 const handleLoadMore = () => {
-  btnLoadMoreEl.classList.add('ishidden');
+  // btnLoadMoreEl.classList.add('ishidden');
   countPages += 1;
   fetchAllCards(countPages);
-  isAllPitures
-    ? messageEndEl.classList.remove('ishidden')
-    : btnLoadMoreEl.classList.remove('ishidden');
+  // isAllPitures
+  //   ? messageEndEl.classList.remove('ishidden')
+  //   : btnLoadMoreEl.classList.remove('ishidden');
 };
 
 const handleClickGalleryByImage = e => {
@@ -179,10 +180,10 @@ function handleScrollPage() {
   const { height: cardHeight } =
     wrapGalleryEl.firstElementChild?.getBoundingClientRect() || 0;
 
-  window.scrollBy({
-    top: cardHeight * 2,
-    behavior: 'smooth',
-  });
+  // window.scrollBy({
+  //   top: cardHeight * 2,
+  //   behavior: 'smooth',
+  // });
   if (
     window.scrollY + window.innerHeight + cardHeight >=
     document.documentElement.scrollHeight
