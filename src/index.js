@@ -12,6 +12,7 @@ const btnLoadMoreEl = document.querySelector('.load-more');
 const messageEndEl = document.querySelector('.message-end');
 
 let countPages = 1;
+let totalPages = 0;
 let currentHits = 0;
 let isAllPitures = false;
 
@@ -60,17 +61,17 @@ const renderOneCardPicture = (
 };
 
 const setClassesEndPage = () => {
-  // btnLoadMoreEl.classList.add('ishidden');
+  btnLoadMoreEl.classList.add('ishidden');
   messageEndEl.classList.remove('ishidden');
 
-  window.removeEventListener('scroll', handleScrollPage);
+  // window.removeEventListener('scroll', handleScrollPage);
 };
 
 const setClassesStartPage = () => {
-  // btnLoadMoreEl.classList.remove('ishidden');
+  btnLoadMoreEl.classList.remove('ishidden');
   messageEndEl.classList.add('ishidden');
 
-  window.addEventListener('scroll', handleScrollPage);
+  // window.addEventListener('scroll', handleScrollPage);
 };
 
 const errorRespons = () =>
@@ -92,7 +93,7 @@ const responseFetchPhoto = async numberCards => {
     return data;
   } catch (error) {
     console.log(error);
-    // btnLoadMoreEl.classList.add('ishidden');
+    btnLoadMoreEl.classList.add('ishidden');
   }
 };
 
@@ -103,18 +104,29 @@ const fetchAllCards = async numberCards => {
     const arrayPitures = [...itemPicture.data.hits];
 
     let totalHits = itemPicture.data.totalHits;
+    totalPages = Math.ceil(totalHits / 40);
     currentHits += arrayPitures.length;
-    isAllPitures = currentHits < totalHits ? false : true;
-
-    if (arrayPitures.length === 0) errorRespons();
-
-    if (isAllPitures || arrayPitures.length === 0) {
-      setClassesEndPage();
+    console.log(
+      'countPages, totalPages, currentHits',
+      countPages,
+      totalPages,
+      currentHits
+    );
+    if (currentHits === 0) {
+      errorRespons();
+      btnLoadMoreEl.classList.add('ishidden');
+      messageEndEl.classList.add('ishidden');
       return;
     }
 
-    if (numberCards === 1) Notify.info(`Hooray! We found ${totalHits} images.`);
-    bodyEl.classList.remove('stop-scrolling');
+    isAllPitures = countPages <= totalPages ? false : true;
+
+    if (countPages === totalPages && totalPages > 0) setClassesEndPage();
+
+    if (numberCards === 1) {
+      Notify.info(`Hooray! We found ${totalHits} images.`);
+      bodyEl.classList.remove('stop-scrolling');
+    }
 
     const renderCardsPictures = arrayPitures
       .map(
@@ -144,7 +156,7 @@ const fetchAllCards = async numberCards => {
     showBigPicture();
   } catch (error) {
     console.log(error.message);
-    // btnLoadMoreEl.classList.add('ishidden');
+    btnLoadMoreEl.classList.add('ishidden');
   }
 };
 
@@ -158,12 +170,12 @@ const handleSearchPictures = e => {
 };
 
 const handleLoadMore = () => {
-  // btnLoadMoreEl.classList.add('ishidden');
+  btnLoadMoreEl.classList.add('ishidden');
   countPages += 1;
   fetchAllCards(countPages);
-  // isAllPitures
-  //   ? messageEndEl.classList.remove('ishidden')
-  //   : btnLoadMoreEl.classList.remove('ishidden');
+  isAllPitures
+    ? messageEndEl.classList.remove('ishidden')
+    : btnLoadMoreEl.classList.remove('ishidden');
 };
 
 const handleClickGalleryByImage = e => {
@@ -189,6 +201,7 @@ function handleScrollPage() {
     document.documentElement.scrollHeight
   ) {
     countPages += 1;
+
     fetchAllCards(countPages);
   }
 }
