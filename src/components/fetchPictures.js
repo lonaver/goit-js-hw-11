@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 const KEY_API = '34551124-3d6c313521296c54d83fa1029';
+export const per_page = 40;
 // axios.defaults.baseURL('');
 
 export async function fetchPhoto(name, number_page) {
@@ -11,7 +12,7 @@ export async function fetchPhoto(name, number_page) {
         image_type: 'photo',
         orientation: 'horizontal',
         safesearch: 'true',
-        per_page: '40',
+        per_page: `${per_page}`,
         page: `${number_page}`,
       },
     }

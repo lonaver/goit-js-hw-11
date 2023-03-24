@@ -2,7 +2,7 @@ import SimpleLightbox from 'simplelightbox';
 // Додатковий імпорт стилів
 import 'simplelightbox/dist/simple-lightbox.min.css';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
-import { fetchPhoto } from './components/fetchPictures';
+import { fetchPhoto, per_page } from './components/fetchPictures';
 
 const bodyEl = document.querySelector('body');
 const formEl = document.querySelector('.search-form');
@@ -14,7 +14,7 @@ const messageEndEl = document.querySelector('.message-end');
 let countPages = 1;
 let totalPages = 0;
 let currentHits = 0;
-let isAllPitures = false;
+let totalHits = 0;
 
 btnLoadMoreEl.classList.add('ishidden');
 messageEndEl.classList.add('ishidden');
@@ -64,14 +64,19 @@ const setClassesEndPage = () => {
   btnLoadMoreEl.classList.add('ishidden');
   messageEndEl.classList.remove('ishidden');
 
-  // window.removeEventListener('scroll', handleScrollPage);
+  window.removeEventListener('scroll', handleScrollPage);
 };
 
 const setClassesStartPage = () => {
-  btnLoadMoreEl.classList.remove('ishidden');
+  //btnLoadMoreEl.classList.remove('ishidden');
   messageEndEl.classList.add('ishidden');
 
-  // window.addEventListener('scroll', handleScrollPage);
+  window.addEventListener('scroll', handleScrollPage);
+};
+
+const allIsHidden = () => {
+  btnLoadMoreEl.classList.add('ishidden');
+  messageEndEl.classList.add('ishidden');
 };
 
 const errorRespons = () =>
@@ -85,6 +90,33 @@ const showBigPicture = () => {
   gallery.on('show.simplelightbox');
 };
 
+const renderFetchingPictures = arrayPitures => {
+  const renderCardsPictures = arrayPitures
+    .map(
+      ({
+        webformatURL,
+        largeImageURL,
+        tags,
+        likes,
+        views,
+        comments,
+        downloads,
+      }) => {
+        return renderOneCardPicture(
+          webformatURL,
+          largeImageURL,
+          tags,
+          likes,
+          views,
+          comments,
+          downloads
+        );
+      }
+    )
+    .join('');
+  wrapGalleryEl.insertAdjacentHTML('beforeEnd', renderCardsPictures);
+};
+
 const responseFetchPhoto = async numberCards => {
   const nameSearch = inputSearchEl.value.trim();
   if (nameSearch === '') return;
@@ -93,7 +125,7 @@ const responseFetchPhoto = async numberCards => {
     return data;
   } catch (error) {
     console.log(error);
-    btnLoadMoreEl.classList.add('ishidden');
+    allIsHidden();
   }
 };
 
@@ -103,8 +135,8 @@ const fetchAllCards = async numberCards => {
 
     const arrayPitures = [...itemPicture.data.hits];
 
-    let totalHits = itemPicture.data.totalHits;
-    totalPages = Math.ceil(totalHits / 40);
+    totalHits = itemPicture.data.totalHits;
+    totalPages = Math.ceil(totalHits / per_page);
     currentHits += arrayPitures.length;
     console.log(
       'countPages, totalPages, currentHits',
@@ -114,68 +146,47 @@ const fetchAllCards = async numberCards => {
     );
     if (currentHits === 0) {
       errorRespons();
-      btnLoadMoreEl.classList.add('ishidden');
-      messageEndEl.classList.add('ishidden');
+      allIsHidden();
       return;
     }
-
-    isAllPitures = countPages <= totalPages ? false : true;
-
-    if (countPages === totalPages && totalPages > 0) setClassesEndPage();
 
     if (numberCards === 1) {
       Notify.info(`Hooray! We found ${totalHits} images.`);
       bodyEl.classList.remove('stop-scrolling');
     }
 
-    const renderCardsPictures = arrayPitures
-      .map(
-        ({
-          webformatURL,
-          largeImageURL,
-          tags,
-          likes,
-          views,
-          comments,
-          downloads,
-        }) => {
-          return renderOneCardPicture(
-            webformatURL,
-            largeImageURL,
-            tags,
-            likes,
-            views,
-            comments,
-            downloads
-          );
-        }
-      )
-      .join('');
-    wrapGalleryEl.insertAdjacentHTML('beforeEnd', renderCardsPictures);
-
+    renderFetchingPictures(arrayPitures);
     showBigPicture();
+
+    if (countPages === totalPages && totalPages > 0) setClassesEndPage();
+
+    if (countPages !== totalPages) {
+      setClassesStartPage();
+    }
   } catch (error) {
     console.log(error.message);
-    btnLoadMoreEl.classList.add('ishidden');
+    allIsHidden();
   }
+};
+
+const resetValue = () => {
+  wrapGalleryEl.innerHTML = '';
+  countPages = 1;
+  currentHits = 0;
+  totalPages = 0;
+  totalHits = 0;
 };
 
 const handleSearchPictures = e => {
   e.preventDefault();
-  wrapGalleryEl.innerHTML = '';
-  countPages = 1;
-  currentHits = 0;
+  resetValue();
   fetchAllCards(countPages);
-  setClassesStartPage();
 };
 
 const handleLoadMore = () => {
   btnLoadMoreEl.classList.add('ishidden');
   countPages += 1;
   fetchAllCards(countPages);
-  isAllPitures
-    ? messageEndEl.classList.remove('ishidden')
-    : btnLoadMoreEl.classList.remove('ishidden');
 };
 
 const handleClickGalleryByImage = e => {
@@ -188,6 +199,11 @@ const handleClickGalleryByImage = e => {
   let urlOriginalImage = e.target.dataset.src;
 };
 
+const hasMoreQuotes = (page, limit, total) => {
+  const startIndex = (page - 1) * limit + 1;
+  return total === 0 || startIndex < total;
+};
+
 function handleScrollPage() {
   const { height: cardHeight } =
     wrapGalleryEl.firstElementChild?.getBoundingClientRect() || 0;
@@ -196,12 +212,14 @@ function handleScrollPage() {
   //   top: cardHeight * 2,
   //   behavior: 'smooth',
   // });
-  if (
-    window.scrollY + window.innerHeight + cardHeight >=
-    document.documentElement.scrollHeight
-  ) {
-    countPages += 1;
 
+  const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+
+  if (
+    scrollTop + clientHeight >= scrollHeight - 5 &&
+    hasMoreQuotes(countPages, per_page, totalHits)
+  ) {
+    countPages++;
     fetchAllCards(countPages);
   }
 }
